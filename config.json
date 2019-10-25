@@ -1,0 +1,28 @@
+[{"Note": "defone column names in CSV file with json format",
+  "localtime": "Set Yes or No to check the datatime is localtime or UTCtime",
+  "lon": "lon",
+  "lat": "lat",
+  "lat_center and lon_center": "If lat and lon are not available, please fill with geographic center of contry or city, in Taiwan default is (120.979681,23.973835)",
+  "data_avg": "Y or N to set average data or not"
+
+},
+  {
+    "time": "Date",
+    "DateTime_format": "%y/%m/%d %H:%M:%S",
+    "lon": "lon",
+    "lat": "lat",
+    "airpressure": "airpressure",
+    "Ta": "Temperature",
+    "RH": "RH",
+    "solar": "Solar Radiation",
+    "ws": "Wind Speed",
+    "localtime": "Yes",
+    "TimeZone": 8,
+    "lat_center":23.973835,
+    "lon_center": 120.979681,
+    "alb_sfc": "surface albedo",
+    "variable_fdir": "Y",
+    "data_avg": "N"
+
+  }
+]
