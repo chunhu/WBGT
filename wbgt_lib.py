@@ -48,7 +48,16 @@ RH_col = "RH"
 solar_col = "solar"
 ws_col = "WS"
 
-
+# =================
+# Based on iso 7243 to predict the temperature of a black globe of 150 mm diameter, tg150,
+# from the temperature, tgd, of a black globe of diameter, d, in millimetres
+def fISO7243_globe150(row):
+    Ta = row[Ta_col]
+    Tg = row['globe_bulb_50mm']
+    speed = row[ws_col]
+    tg150 = Ta + (1 + 1.13 * (speed ** 0.6) * ((diamGlobe_check) ** -0.4 ) ) * ( Tg - Ta ) / (1 + 2.41 * (speed ** 0.6))
+    return tg150
+# =================
 
 def data_column_value(data):
     columnNames=list(data.columns.values)
@@ -396,11 +405,13 @@ def fWBGTo(data):
     # fdir
     fdir = pd.DataFrame(list(df.apply(solar_fdir, axis=1)), columns=['fdir'])
     df = pd.concat([df, fdir], axis=1, join_axes=[df.index])
+
     #WBGT calculation
     dry_bulb = round(df[Ta_col],1)
-    data['wet_bulb'] =round((pd.DataFrame(list(df.apply(fTwb, axis=1)))),3)
-    data['globe_bulb'] = round((pd.DataFrame(list(df.apply(fTg, axis=1)))),3)
-    data['WBGTo']=round(( 0.7 * data['wet_bulb'] + 0.2 * data['globe_bulb'] + 0.1 * dry_bulb),3)
+    data['wet_bulb'] =round((pd.DataFrame(list(df.apply(fTwb, axis=1)))), 2)
+    data['globe_bulb_50mm'] = round((pd.DataFrame(list(df.apply(fTg, axis=1)))), 2)
+    data['globe_bulb_150mm'] = round((pd.DataFrame(list(df.apply(fISO7243_globe150, axis=1)))), 2)
+    data['WBGTo']=round(( 0.7 * data['wet_bulb'] + 0.2 * data['globe_bulb_150mm'] + 0.1 * dry_bulb), 2)
     del data['data_avg']
     del data['DateTime_format']
     del data['Local_DataTime']
