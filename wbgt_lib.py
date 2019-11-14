@@ -351,13 +351,13 @@ def fWBGTo(data):
                              columns=['year', 'mon', 'day', 'hr', 'minute', 'second',
                                       'day_in_year'])  # modified at 2019/07/30
     #print(data_time)
-    df = pd.concat([df,data_time], axis=1)#, join_axes=[df.index])
+    df = pd.concat([df,data_time], axis=1, join_axes=[df.index])
     # zenith
     zenith = pd.DataFrame(list(df.apply(solar_zenith, axis=1)), columns=['solar_zenith'])
-    df = pd.concat([df, zenith], axis=1)#, join_axes=[df.index])
+    df = pd.concat([df, zenith], axis=1, join_axes=[df.index])
     # fdir
     fdir = pd.DataFrame(list(df.apply(solar_fdir, axis=1)), columns=['fdir'])
-    df = pd.concat([df, fdir], axis=1)#, join_axes=[df.index])
+    df = pd.concat([df, fdir], axis=1, join_axes=[df.index])
     #print(df)
 
     #WBGT calculation
