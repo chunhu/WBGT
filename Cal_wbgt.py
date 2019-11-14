@@ -3,13 +3,13 @@ import os
 append_path=os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 #sys.path.append('/home/chunhu/PycharmProjects/MyPythonCode/')
 sys.path.append(append_path)
-from WBGT_git.WBGT.my_lib import find_filenames, csv_col_to_numeric
+from WBGT_git.my_lib import find_filenames, csv_col_to_numeric
 import pandas as pd
 import numpy as np
-from WBGT_git.WBGT.create_folder import Create_folder
+from WBGT_git.create_folder import Create_folder
 import json
 from datetime import datetime, timedelta
-from WBGT_git.WBGT.wbgt_lib import fWBGTo
+from WBGT_git.wbgt_lib import fWBGTo
 pd.set_option('display.max_columns', None)
 
 CurrentPath=os.path.abspath(os.path.dirname(__file__))

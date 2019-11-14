@@ -21,7 +21,7 @@
     "lat_center":23.973835,
     "lon_center": 120.979681,
     "alb_sfc": "surface albedo",
-    "variable_fdir": "Y",
+    "variable_fdir": "N",
     "data_avg": "Y"
 
   }

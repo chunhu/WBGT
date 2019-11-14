@@ -56,7 +56,7 @@ def fISO7243_globe150(row):
     Ta = row[Ta_col]
     Tg = row['globe_bulb_50mm']
     speed = row[ws_col]
-    tg150 = Ta + (1 + 1.13 * (speed ** 0.6) * ((diamGlobe_check) ** -0.4 ) ) * ( Tg - Ta ) / (1 + 2.41 * (speed ** 0.6))
+    tg150 = Ta + (1 + 1.13 * (speed ** 0.6) * ((diamGlobe) ** -0.4 ) ) * ( Tg - Ta ) / (1 + 2.41 * (speed ** 0.6))
     return tg150
 # =================
 
@@ -228,13 +228,13 @@ def fTwb(row):
         pass
 
     try:
-        if (row['variable fdir'] == 'Yes') | (row['variable fdir'] == 'yes') | (
-                row['variable fdir'] == 'Y') | (row['variable fdir'] == 'y'):
+        if (row['variable_fdir'] == 'Yes') | (row['variable_fdir'] == 'yes') | (
+                row['variable_fdir'] == 'Y') | (row['variable_fdir'] == 'y'):
             pass
         else:
             fdir = fdir_fix
     except:
-        fdir_set = True
+        fdir = fdir_fix
 
     if zenith<=89.5:    #modified at 2019/07/30
         zenith = zenith
@@ -262,6 +262,9 @@ def fTwb(row):
                     1 - alb_wick) * solar * ((1 - fdir) * (1 + 0.25 * diamWick / lenWick) + (
                     (math.sin(math.radians(zenith)) / math.pi) + 0.25 * math.cos(
                 math.radians(zenith)) * diamWick / lenWick) * fdir + alb_sfc)
+
+        Fatm = stefanb * emis_wick * (0.5 * (emis_at * Tair ** 4 + emis_sfc * Tsfc ** 4) - Twb_prev ** 4) + (1 - alb_wick) * solar * ((1 - fdir) * (1 + 0.25 * diamWick / lenWick) + ((math.sin(math.radians(zenith)) / math.pi) + 0.25 * math.cos( math.radians(zenith)) * diamWick / lenWick) * fdir + alb_sfc)
+
         ewick = esat(Twb_prev, Pair)
         density = Pair * 100 / (Twb_prev * R_gas / M_air)
         Sc = viscosity(Twb_prev) / (density * diffusivity(Twb_prev, Pair))
@@ -301,8 +304,8 @@ def fTg(row):
         pass
 ###  midified at 20190910
     try:
-        if (row['variable fdir'] == 'Yes') | (row['variable fdir'] == 'yes') | (
-                row['variable fdir'] == 'Y') | (row['variable fdir'] == 'y'):
+        if (row['variable_fdir'] == 'Yes') | (row['variable_fdir'] == 'yes') | (
+                row['variable_fdir'] == 'Y') | (row['variable_fdir'] == 'y'):
             pass
         else:
             fdir = fdir_fix
@@ -350,26 +353,26 @@ def fWBGTo(data):
     data_time = pd.DataFrame(list(df[time_col_local].apply(time_convert, time_interval=time_interval,DateTime_format="%Y/%m/%d %H:%M:%S")),
                              columns=['year', 'mon', 'day', 'hr', 'minute', 'second',
                                       'day_in_year'])  # modified at 2019/07/30
-    #print(data_time)
-    df = pd.concat([df,data_time], axis=1, join_axes=[df.index])
+    # print(data_time)
+    # print(df)
+    df = pd.concat([df,data_time], axis=1)#, join_axes=[df.index])
     # zenith
     zenith = pd.DataFrame(list(df.apply(solar_zenith, axis=1)), columns=['solar_zenith'])
-    df = pd.concat([df, zenith], axis=1, join_axes=[df.index])
+    df = pd.concat([df, zenith], axis=1)#, join_axes=[df.index])
     # fdir
     fdir = pd.DataFrame(list(df.apply(solar_fdir, axis=1)), columns=['fdir'])
-    df = pd.concat([df, fdir], axis=1, join_axes=[df.index])
+    df = pd.concat([df, fdir], axis=1)#, join_axes=[df.index])
     #print(df)
-
     #WBGT calculation
-    dry_bulb = round(df[Ta_col],1)
+    dry_bulb = df[Ta_col]
     data['wet_bulb'] =round((pd.DataFrame(list(df.apply(fTwb, axis=1)))), 2)
-    print("DDD1")
+    # print("DDD1")
     data['globe_bulb_50mm'] = round((pd.DataFrame(list(df.apply(fTg, axis=1)))), 2)
-    print("DDD2")
-    data['globe_bulb_150mm'] = round((pd.DataFrame(list(df.apply(fISO7243_globe150, axis=1)))), 2)
-    print("DDD3")
+    # print("DDD2")
+    data['globe_bulb_150mm'] = round((pd.DataFrame(list(data.apply(fISO7243_globe150, axis=1)))), 2)
+    # print("DDD3")
     data['WBGTo']=round(( 0.7 * data['wet_bulb'] + 0.2 * data['globe_bulb_150mm'] + 0.1 * dry_bulb), 2)
-    print("DDD4")
+    # print("DDD4")
     #del data['data_avg']
     #del data['DateTime_format']
     #del data['Local_DataTime']
