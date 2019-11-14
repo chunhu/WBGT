@@ -5,6 +5,7 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
+
 import pandas as pd
 import datetime as dt
 import numpy as np
@@ -59,6 +60,7 @@ def fISO7243_globe150(row):
     return tg150
 # =================
 
+
 def data_column_value(data):
     columnNames=list(data.columns.values)
     return columnNames
@@ -74,7 +76,6 @@ def time_convert(row, time_interval,DateTime_format):
     sec = data_time.second
     day_in_year = data_time.timetuple().tm_yday
     return year, mon, day, hr, minute, sec, day_in_year
-
 
 #https://www.esrl.noaa.gov/gmd/grad/solcalc/solareqns.PDF
 def solar_zenith(row):
@@ -97,19 +98,13 @@ def solar_zenith(row):
                 math.cos(math.radians(lat)) * math.cos(decl) * math.cos(math.radians(ha))))))
     return zenith
 
-
-# In[488]:
-
-
 # reference Liljegren et al.(2008) eq.13 & eq.14
 def solar_fdir(row, solar_col=solar_col):
     zenith = row['solar_zenith']
-
     if (row[solar_col] == 0 or row[solar_col] == ''):
         solar = 0.00001  # default is 0, modified at 20190527
     else:
         solar = row[solar_col]
-
     if zenith <= 89.5:
         solarmax = 1367 * math.cos(math.radians(zenith)) / (1) ** 2
         fdir = math.exp(3 - 1.34 * (solar / solarmax) - 1.65 / (solar / solarmax))
@@ -118,10 +113,6 @@ def solar_fdir(row, solar_col=solar_col):
         fdir = 0
     return fdir
 
-
-# In[489]:
-
-
 # Calculation of dew point from RH
 def fTd(Ta, RH):
     RHD = RH / 100
@@ -129,24 +120,17 @@ def fTd(Ta, RH):
                 1 - math.log(RHD, math.exp(1)) / 17.27 - Ta / (237.3 + Ta))  # Gornicki et al., 2017
     return fTd
 
-
 #  Purpose: Compute the viscosity of air, kg/(m s) given temperature, K
 #  Reference: BSL
 def viscosity(Tair):
     _ret = np.nan
-
     Tr = Tair / 97  # ε/K =97 in Air of Table E.1
     if Tr <= 3:
         omega = 1.6214 * (Tr) ** (-0.456)  # Table E.2
     else:
         omega = 1.2083 * (Tr) ** (-0.16)  # Table E.2
-
     _ret = 0.0000026693 * (28.97 * Tair) ** 0.5 / (3.617 ** 2 * omega)  # Reference: BSL, page 278, kg/(m-s)
     return _ret
-
-
-# In[490]:
-
 
 #  Purpose: calculate the saturation vapor pressure (mb) over liquid water given the temperature (K).
 #  Reference: Buck's (1981) approximation (eqn 3) of Wexler's (1976) formulae.
@@ -159,20 +143,12 @@ def esat(Tk, Pair):
                 3.46E-6 * Pair)) * _ret  # correction for moist air, if pressure is not available; for pressure > 800 mb
     return _ret
 
-
-# In[491]:
-
-
 #  Reference: Oke (2nd edition), page 373., P: hPa
 def emis_atm(Ta, RH, Pair):
     _ret = np.nan
     e = RH * esat(Ta, Pair)
     _ret = 0.575 * e ** (1 / 7)
     return _ret
-
-
-# In[492]:
-
 
 #  Purpose: compute the diffusivity of water vapor in air, m2/s
 #  Reference: BSL, page 521.
@@ -186,10 +162,6 @@ def diffusivity(Tair, Pair):
     _ret = 0.000364 * (Tair / Tcrit12) ** 2.334 * pcrit13 * tcrit512 * Mmix / (Pair / 1013.25) * 0.0001
     return _ret
 
-
-# In[493]:
-
-
 #  Purpose: to calculate the convective heat tranfer coefficient for flow around a sphere.
 #  Reference: Bird, Stewart, and Lightfoot (BSL).
 def h_sphere_in_air(Tair, Pair, speed):
@@ -198,18 +170,12 @@ def h_sphere_in_air(Tair, Pair, speed):
     Pr = Cp / (Cp + 1.25 * Rair)  # BSL, page 276
     thermal_con = (Cp + 1.25 * R_gas / M_air) * viscosity(Tair)  # BSL, page 276
     density = Pair * 100 / (Rair * Tair)  # kg/m3
-
     if speed < MinWindSpeed:
         speed = MinWindSpeed
-
     Re = speed * density * diamGlobe / viscosity(Tair)
     Nu = 2 + 0.6 * Re ** 0.5 * Pr ** (1 / 3)  # reference Liljegren eq. 16
     _ret = Nu * thermal_con / diamGlobe  # W/(m2 K)
     return _ret
-
-
-# In[494]:
-
 
 #  Purpose: to calculate the convective heat transfer coefficient for a long cylinder in cross flow.
 #  Reference: Bedingfield and Drew, eqn 32
@@ -230,10 +196,6 @@ def h_cylinder_in_air(Tair, Pair, speed):
     _ret = Nu * thermal_con / diamWick
     return _ret
 
-
-# In[501]:
-
-
 # find natural wet bulb temperature
 # def fTwb(row,  airpressure_col=airpressure_col, Ta_col=Ta_col, RH_col=RH_col,solar_col=solar_col, ws_col=ws_col):
 def fTwb(row):
@@ -247,11 +209,9 @@ def fTwb(row):
     speed = row[ws_col]
     zenith = row['solar_zenith']
     fdir = row['fdir']
-
     ratio = Cp * M_air / M_H2O
     Pr = Cp / (Cp + (1.25 * R_gas / M_air))
     Td = fTd(Ta, relh)  # calculate dewpoint temp
-
     # Check to make sure Td < Ta
     if Td > Ta:
         print('Td:', Td, '; Ta:', Ta, 'Td-Ta:', Td-Ta)
@@ -262,7 +222,6 @@ def fTwb(row):
             return _ret, 'Td-Ta > 0.1 '
         else:
             Td = Ta
-
     try:
         alb_sfc = row['surface_albedo']
     except:
@@ -292,7 +251,6 @@ def fTwb(row):
     Tsfc = Tair
     Twb_prev = Tdew  # First guess is the dew point temperature
 
-
     # Do iteration
     testno = 1
     while (testno <= 1000):
@@ -319,10 +277,6 @@ def fTwb(row):
     print('Twb No convergence: %s' % (row[time_col]))
     return _ret
 
-
-# In[496]:
-
-
 # find globe temperature : black globe temp
 #  Purpose: to calculate the globe temperature
 #  Author:  James C. Liljegren
@@ -341,7 +295,6 @@ def fTg(row):
     zenith = row['solar_zenith']
     fdir = row['fdir']
 
-
     try:
         alb_sfc = row['surface_albedo']
     except:
@@ -355,7 +308,6 @@ def fTg(row):
             fdir = fdir_fix
     except:
         fdir = fdir_fix
-
 
     Tair = Ta + 273.15
     RH = relh * 0.01
@@ -387,7 +339,7 @@ def fWBGTo(data):
     else:
         data[airpressure_col] =AtmPressure
     df = pd.DataFrame(data,columns=data_column_value(data))
-    DateTime_format = data['DateTime_format'][0]
+    #DateTime_format = data['DateTime_format'][0]
     time_series = df[time_col_local].apply(lambda row: dt.datetime.strptime(row, "%Y/%m/%d %H:%M:%S"))  #modified at 2019/08/
     #print(data['data_avg'][0])
     if data['data_avg'][0] == "Y":
@@ -398,25 +350,31 @@ def fWBGTo(data):
     data_time = pd.DataFrame(list(df[time_col_local].apply(time_convert, time_interval=time_interval,DateTime_format="%Y/%m/%d %H:%M:%S")),
                              columns=['year', 'mon', 'day', 'hr', 'minute', 'second',
                                       'day_in_year'])  # modified at 2019/07/30
-    df = pd.concat([df,data_time], axis=1, join_axes=[df.index])
+    #print(data_time)
+    df = pd.concat([df,data_time], axis=1)#, join_axes=[df.index])
     # zenith
     zenith = pd.DataFrame(list(df.apply(solar_zenith, axis=1)), columns=['solar_zenith'])
-    df = pd.concat([df, zenith], axis=1, join_axes=[df.index])
+    df = pd.concat([df, zenith], axis=1)#, join_axes=[df.index])
     # fdir
     fdir = pd.DataFrame(list(df.apply(solar_fdir, axis=1)), columns=['fdir'])
-    df = pd.concat([df, fdir], axis=1, join_axes=[df.index])
+    df = pd.concat([df, fdir], axis=1)#, join_axes=[df.index])
+    #print(df)
 
     #WBGT calculation
     dry_bulb = round(df[Ta_col],1)
     data['wet_bulb'] =round((pd.DataFrame(list(df.apply(fTwb, axis=1)))), 2)
+    print("DDD1")
     data['globe_bulb_50mm'] = round((pd.DataFrame(list(df.apply(fTg, axis=1)))), 2)
+    print("DDD2")
     data['globe_bulb_150mm'] = round((pd.DataFrame(list(df.apply(fISO7243_globe150, axis=1)))), 2)
+    print("DDD3")
     data['WBGTo']=round(( 0.7 * data['wet_bulb'] + 0.2 * data['globe_bulb_150mm'] + 0.1 * dry_bulb), 2)
-    del data['data_avg']
-    del data['DateTime_format']
-    del data['Local_DataTime']
-    del data['variable_fdir']
-    del data['timezone']
+    print("DDD4")
+    #del data['data_avg']
+    #del data['DateTime_format']
+    #del data['Local_DataTime']
+    #del data['variable_fdir']
+    #del data['timezone']
 
 
     # #return the original data to get all data and cal Tw, Tg and WBGT from input data
@@ -425,7 +383,9 @@ def fWBGTo(data):
     #print(data)
     return data
 
-#filename = '10817916.csv'
+
+#CurrentPath=os.path.abspath(os.path.dirname(__file__))
+#filename = '000.csv'
 #data = pd.read_csv(os.path.join(CurrentPath, filename),header=0, index_col=False)
 #calData=fWBGTo(data)
 #print(calData)

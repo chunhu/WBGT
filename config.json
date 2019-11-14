@@ -7,22 +7,22 @@
 
 },
   {
-    "time": "Date",
-    "DateTime_format": "%y/%m/%d %H:%M:%S",
+    "time": "Datatime",
+    "DateTime_format": "%Y/%m/%d %H:%M",
     "lon": "lon",
     "lat": "lat",
     "airpressure": "airpressure",
-    "Ta": "Temperature",
-    "RH": "RH",
-    "solar": "Solar Radiation",
-    "ws": "Wind Speed",
+    "Ta": "DryBulbSensor",
+    "RH": "HOBO_rh",
+    "solar": "HOBO_solar",
+    "ws": "HOBO_ws",
     "localtime": "Yes",
     "TimeZone": 8,
     "lat_center":23.973835,
     "lon_center": 120.979681,
     "alb_sfc": "surface albedo",
     "variable_fdir": "Y",
-    "data_avg": "N"
+    "data_avg": "Y"
 
   }
 ]

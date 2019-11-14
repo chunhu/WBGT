@@ -1,13 +1,15 @@
 import sys
-sys.path.append('/home/chunhu/PycharmProjects/MyPythonCode/')
 import os
-from Cal_WBGT_20190910_01.my_lib import find_filenames, csv_col_to_numeric
+append_path=os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+#sys.path.append('/home/chunhu/PycharmProjects/MyPythonCode/')
+sys.path.append(append_path)
+from WBGT_git.WBGT.my_lib import find_filenames, csv_col_to_numeric
 import pandas as pd
 import numpy as np
-from Cal_WBGT_20190910_01.create_folder import Create_folder
+from WBGT_git.WBGT.create_folder import Create_folder
 import json
 from datetime import datetime, timedelta
-from WBGT.wbgt_lib import fWBGTo
+from WBGT_git.WBGT.wbgt_lib import fWBGTo
 pd.set_option('display.max_columns', None)
 
 CurrentPath=os.path.abspath(os.path.dirname(__file__))
@@ -54,7 +56,7 @@ with open(titles_file, 'r') as f:
 #get CSV file list
 csv_files=find_filenames(CSV_data, "csv")
 csv_files.sort()
-#print(CSVFile)
+#print(csv_files)
 current_path = os.path.dirname(os.path.abspath(__file__))
 
 def TimeZone_check(row):
@@ -93,6 +95,7 @@ def Cal_WBGT(csvfiles,CSV_data):
     for f in csvfiles:
         try:
             datafile = pd.read_csv(CSV_data+'/'+f, header=0, index_col=False)
+            #print(datafile)
             WBGT=datafile.copy()
             datafile[time_col_local] = datafile[time_col].apply(TimeZone_check)
             datafile[Ta_col] = csv_col_to_numeric(datafile[Ta_col])
@@ -129,7 +132,8 @@ def Cal_WBGT(csvfiles,CSV_data):
             print("Cal WBGT : ", f)
             WBGT_f = fWBGTo(datafile)
             WBGT['wet_bulb']=WBGT_f['wet_bulb']
-            WBGT['globe_bulb']=WBGT_f['globe_bulb']
+            WBGT['globe_bulb_50mm'] = WBGT_f['globe_bulb_50mm']
+            WBGT['globe_bulb_150mm'] = WBGT_f['globe_bulb_150mm']
             WBGT['WBGTo']=WBGT_f['WBGTo']
             print(WBGT)
             WBGT.to_csv(WBGT_data + "/" + f + ".csv", mode='w+', index=False)
