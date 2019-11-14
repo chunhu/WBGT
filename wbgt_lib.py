@@ -263,8 +263,6 @@ def fTwb(row):
                     (math.sin(math.radians(zenith)) / math.pi) + 0.25 * math.cos(
                 math.radians(zenith)) * diamWick / lenWick) * fdir + alb_sfc)
 
-        Fatm = stefanb * emis_wick * (0.5 * (emis_at * Tair ** 4 + emis_sfc * Tsfc ** 4) - Twb_prev ** 4) + (1 - alb_wick) * solar * ((1 - fdir) * (1 + 0.25 * diamWick / lenWick) + ((math.sin(math.radians(zenith)) / math.pi) + 0.25 * math.cos( math.radians(zenith)) * diamWick / lenWick) * fdir + alb_sfc)
-
         ewick = esat(Twb_prev, Pair)
         density = Pair * 100 / (Twb_prev * R_gas / M_air)
         Sc = viscosity(Twb_prev) / (density * diffusivity(Twb_prev, Pair))
