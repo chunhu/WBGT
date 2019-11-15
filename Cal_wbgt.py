@@ -133,6 +133,7 @@ def Cal_WBGT(csvfiles,CSV_data):
             print("Cal WBGT : ", f)
 
             #************************for Labor Start************************
+            #TT=['_RCP8.5_5.0']
             TT=['','_RCP2.6_0.8','_RCP2.6_1.5','_RCP2.6_2.4','_RCP4.5_1.5','_RCP4.5_2.1','_RCP4.5_3.3','_RCP6.0_1.8','_RCP6.0_2.5','_RCP6.0_3.6','_RCP8.5_3.2','_RCP8.5_4.0','_RCP8.5_5.0']
             for TT1 in TT:
                 print(TT1)
@@ -141,7 +142,8 @@ def Cal_WBGT(csvfiles,CSV_data):
                 else:
                     add=float(TT1[-3:])
                 print(add)
-                datafile['Temperature'] = datafile['Temperature'] + add
+                datafile['Temperature'] = WBGT['T'] + add
+                print(datafile['Temperature'] )
                 WBGT_f = fWBGTo(datafile)
                 WBGT['wet_bulb' + TT1] = WBGT_f['wet_bulb']
                 WBGT['globe_bulb_50mm' + TT1] = WBGT_f['globe_bulb_50mm']
