@@ -53,13 +53,15 @@ ws_col = "WS"
 # Based on iso 7243 to predict the temperature of a black globe of 150 mm diameter, tg150,
 # from the temperature, tgd, of a black globe of diameter, d, in millimetres
 def fISO7243_globe150(row):
+    _ret = np.nan
     Ta = row[Ta_col]
     Tg = row['globe_bulb_50mm']
     speed = row[ws_col]
+    if np.isnan(Ta)|np.isnan(Tg)|np.isnan(speed):
+        return _ret
     tg150 = Ta + (1 + 1.13 * (speed ** 0.6) * ((diamGlobe) ** -0.4 ) ) * ( Tg - Ta ) / (1 + 2.41 * (speed ** 0.6))
     return tg150
 # =================
-
 
 def data_column_value(data):
     columnNames=list(data.columns.values)
@@ -212,16 +214,19 @@ def fTwb(row):
     ratio = Cp * M_air / M_H2O
     Pr = Cp / (Cp + (1.25 * R_gas / M_air))
     Td = fTd(Ta, relh)  # calculate dewpoint temp
+
+    if np.isnan(Ta)|np.isnan(relh)|np.isnan(solar)|np.isnan(speed):
+        print('fTwb error: Temp or RH or solar or wind speed is empty at row %s'%(row.name+2))
+        return _ret
+
     # Check to make sure Td < Ta
     if Td > Ta:
-        print('Td:', Td, '; Ta:', Ta, 'Td-Ta:', Td-Ta)
-        Td = Td + 0.1
         if Td-Ta > 0.1:
-            print('Td:',Td,'; Ta:',Ta)
-            #print('Twb error, Td > Ta: %s_%s'%(row[station_col],row[time_col]))
-            return _ret, 'Td-Ta > 0.1 '
+            print('fTwb error: Td-Ta > 0.1 at row %s' % (row.name + 2))
+            return _ret
         else:
             Td = Ta
+
     try:
         alb_sfc = row['surface_albedo']
     except:
@@ -275,7 +280,7 @@ def fTwb(row):
         else:
             Twb_prev = (0.9 * Twb_prev + 0.1 * Twb)
             testno += 1
-    print('Twb No convergence: %s' % (row[time_col]))
+    print('fTwb error: Twb No convergence at row %s' % (row.name + 2))
     return _ret
 
 # find globe temperature : black globe temp
@@ -295,6 +300,10 @@ def fTg(row):
     speed = row[ws_col]
     zenith = row['solar_zenith']
     fdir = row['fdir']
+
+    if np.isnan(Ta)|np.isnan(relh)|np.isnan(solar)|np.isnan(speed):
+        print('fTg error: Temp or RH or solar or wind speed is empty at row %s'%(row.name+2))
+        return _ret
 
     try:
         alb_sfc = row['surface_albedo']
@@ -331,7 +340,7 @@ def fTg(row):
         else:
             Tglobe_prev = (0.9 * Tglobe_prev + 0.1 * Tglobe)
             testno += 1
-    print('Tg No convergence: %s' % (row[time_col]))
+    print('fTg error: Tg No convergence at row %s' % (row.name + 2))
 
 # WBGT outside, time_colm=time_col, lon_col=lon_col, lat_col=lat_col
 def fWBGTo(data):
@@ -361,16 +370,14 @@ def fWBGTo(data):
     fdir = pd.DataFrame(list(df.apply(solar_fdir, axis=1)), columns=['fdir'])
     df = pd.concat([df, fdir], axis=1)#, join_axes=[df.index])
     #print(df)
+
     #WBGT calculation
     dry_bulb = df[Ta_col]
     data['wet_bulb'] =round((pd.DataFrame(list(df.apply(fTwb, axis=1)))), 2)
-    # print("DDD1")
     data['globe_bulb_50mm'] = round((pd.DataFrame(list(df.apply(fTg, axis=1)))), 2)
-    # print("DDD2")
     data['globe_bulb_150mm'] = round((pd.DataFrame(list(data.apply(fISO7243_globe150, axis=1)))), 2)
-    # print("DDD3")
     data['WBGTo']=round(( 0.7 * data['wet_bulb'] + 0.2 * data['globe_bulb_150mm'] + 0.1 * dry_bulb), 2)
-    # print("DDD4")
+
     #del data['data_avg']
     #del data['DateTime_format']
     #del data['Local_DataTime']
