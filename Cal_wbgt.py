@@ -116,6 +116,7 @@ def Cal_WBGT(csvfiles,CSV_data):
             datafile['DateTime_format']=DateTime_format_col
             datafile['timezone']=timezone
 
+
             datafile.rename({
                 time_col: "DataTime",
                 time_col_local: "Local_DataTime",
@@ -130,14 +131,35 @@ def Cal_WBGT(csvfiles,CSV_data):
             }, axis='columns', inplace=True)
             #print(WBGT)
             print("Cal WBGT : ", f)
-            WBGT_f = fWBGTo(datafile)
-            WBGT['wet_bulb']=WBGT_f['wet_bulb']
-            WBGT['globe_bulb_50mm'] = WBGT_f['globe_bulb_50mm']
-            WBGT['globe_bulb_150mm'] = WBGT_f['globe_bulb_150mm']
-            WBGT['WBGTo']=WBGT_f['WBGTo']
-            print(WBGT)
-            WBGT.to_csv(WBGT_data + "/" + f + ".csv", mode='w+', index=False)
 
+            #************************for Labor Start************************
+            TT=['','_RCP2.6_0.8','_RCP2.6_1.5','_RCP2.6_2.4','_RCP4.5_1.5','_RCP4.5_2.1','_RCP4.5_3.3','_RCP6.0_1.8','_RCP6.0_2.5','_RCP6.0_3.6','_RCP8.5_3.2','_RCP8.5_4.0','_RCP8.5_5.0']
+            for TT1 in TT:
+                print(TT1)
+                if TT1=='':
+                    add=0
+                else:
+                    add=float(TT1[-3:])
+                print(add)
+                datafile['Temperature'] = datafile['Temperature'] + add
+                WBGT_f = fWBGTo(datafile)
+                WBGT['wet_bulb' + TT1] = WBGT_f['wet_bulb']
+                WBGT['globe_bulb_50mm' + TT1] = WBGT_f['globe_bulb_50mm']
+                WBGT['globe_bulb_150mm' + TT1] = WBGT_f['globe_bulb_150mm']
+                WBGT['WBGTo'+ TT1] = WBGT_f['WBGTo']
+                print(WBGT)
+                WBGT.to_csv(CSV_data + "/" + f, mode='w+', index=False)
+            # ************************for Labor End************************
+
+            # ************************for General Start************************
+            # WBGT_f = fWBGTo(datafile)
+            # WBGT['wet_bulb']=WBGT_f['wet_bulb']
+            # WBGT['globe_bulb_50mm'] = WBGT_f['globe_bulb_50mm']
+            # WBGT['globe_bulb_150mm'] = WBGT_f['globe_bulb_150mm']
+            # WBGT['WBGTo']=WBGT_f['WBGTo']
+            # #print(WBGT)
+            # WBGT.to_csv(WBGT_data + "/" + f , mode='w+', index=False)
+            # ************************for General End************************
 
         except Exception as e:
             print("data error: ",e)
