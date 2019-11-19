@@ -1,15 +1,21 @@
 import sys
 import os
-append_path=os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 #sys.path.append('/home/chunhu/PycharmProjects/MyPythonCode/')
+append_path=os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+#append_path='/home/chunhu/PycharmProjects/MyPythonCode/'
+print(append_path)
 sys.path.append(append_path)
-from WBGT_git.my_lib import find_filenames, csv_col_to_numeric
 import pandas as pd
 import numpy as np
-from WBGT_git.create_folder import Create_folder
 import json
+import shutil
 from datetime import datetime, timedelta
-from WBGT_git.wbgt_lib import fWBGTo
+
+from WBGT_lib.create_folder import Create_folder
+from WBGT_lib.my_lib import find_filenames,csv_col_to_numeric
+from WBGT_lib.wbgt_lib import fWBGTo
+
+
 pd.set_option('display.max_columns', None)
 
 CurrentPath=os.path.abspath(os.path.dirname(__file__))
@@ -19,11 +25,11 @@ Create_folder("CSV_data_BK")
 
 CSV_data=os.path.join(CurrentPath, "CSV_data")
 CSV_data_BK=os.path.join(CurrentPath, "CSV_data_BK")
+CSV_data_ER=os.path.join(CurrentPath, "CSV_data_ER")
 WBGT_data=os.path.join(CurrentPath, "WBGT_data")
 WBGT_data_BK=os.path.join(CurrentPath, "WBGT_data_BK")
 WBGT_data_ER=os.path.join(CurrentPath, "WBGT_data_ER")
 titles_file=os.path.join(CurrentPath, "config.json")
-
 
 with open(titles_file, 'r') as f:
     titles = json.load(f)
@@ -48,11 +54,6 @@ with open(titles_file, 'r') as f:
     center_lon_col = center_lon
     #DateTime_format_col=titles[1]['DateTime_format']
 
-
-
-
-
-
 #get CSV file list
 csv_files=find_filenames(CSV_data, "csv")
 csv_files.sort()
@@ -70,7 +71,6 @@ def TimeZone_check(row):
         data_time = data_time + timedelta(hours=timezone)
         data_time = datetime.strftime(data_time, "%Y/%m/%d %H:%M:%S")
     return str(data_time)
-
 
 def nantonone(input_col):
     if np.isnan(input_col):
@@ -90,12 +90,11 @@ def del_column(ColumnName,dataframe1,dataframe2):
     else:
         del dataframe2.ColumnName
 
-
 def Cal_WBGT(csvfiles,CSV_data):
     for f in csvfiles:
+        print("Cal WBGT : ", f)
         try:
             datafile = pd.read_csv(CSV_data+'/'+f, header=0, index_col=False)
-            #print(datafile)
             WBGT=datafile.copy()
             datafile[time_col_local] = datafile[time_col].apply(TimeZone_check)
             datafile[Ta_col] = csv_col_to_numeric(datafile[Ta_col])
@@ -116,7 +115,6 @@ def Cal_WBGT(csvfiles,CSV_data):
             datafile['DateTime_format']=DateTime_format_col
             datafile['timezone']=timezone
 
-
             datafile.rename({
                 time_col: "DataTime",
                 time_col_local: "Local_DataTime",
@@ -129,43 +127,40 @@ def Cal_WBGT(csvfiles,CSV_data):
                 data_avg:'data_avg'
 
             }, axis='columns', inplace=True)
-            #print(WBGT)
-            print("Cal WBGT : ", f)
 
-            #************************for Labor Start************************
-            #TT=['_RCP8.5_5.0']
-            TT=['','_RCP2.6_0.8','_RCP2.6_1.5','_RCP2.6_2.4','_RCP4.5_1.5','_RCP4.5_2.1','_RCP4.5_3.3','_RCP6.0_1.8','_RCP6.0_2.5','_RCP6.0_3.6','_RCP8.5_3.2','_RCP8.5_4.0','_RCP8.5_5.0']
-            for TT1 in TT:
-                print(TT1)
-                if TT1=='':
-                    add=0
-                else:
-                    add=float(TT1[-3:])
-                print(add)
-                datafile['Temperature'] = WBGT['T'] + add
-                print(datafile['Temperature'] )
-                WBGT_f = fWBGTo(datafile)
-                WBGT['wet_bulb' + TT1] = WBGT_f['wet_bulb']
-                WBGT['globe_bulb_50mm' + TT1] = WBGT_f['globe_bulb_50mm']
-                WBGT['globe_bulb_150mm' + TT1] = WBGT_f['globe_bulb_150mm']
-                WBGT['WBGTo'+ TT1] = WBGT_f['WBGTo']
-                print(WBGT)
-                WBGT.to_csv(CSV_data + "/" + f, mode='w+', index=False)
-            # ************************for Labor End************************
+            #************************for 勞動部情境模式 Start************************
+            #TT=['','_RCP8.5_5.0']
+            # TT=['','_RCP2.6_0.8','_RCP2.6_1.5','_RCP2.6_2.4','_RCP4.5_1.5','_RCP4.5_2.1','_RCP4.5_3.3','_RCP6.0_1.8','_RCP6.0_2.5','_RCP6.0_3.6','_RCP8.5_3.2','_RCP8.5_4.0','_RCP8.5_5.0']
+            # for TT1 in TT:
+            #     if TT1=='':
+            #         add=0
+            #     else:
+            #         add=float(TT1[-3:])
+            #     print(TT1,":",add)
+            #     datalabor=datafile.copy()
+            #     datalabor['Temperature'] = datalabor['Temperature'] + add
+            #     print(datalabor['Temperature'][0])
+            #     WBGT_f = fWBGTo(datalabor)
+            #     WBGT['wet_bulb' + TT1] = WBGT_f['wet_bulb']
+            #     WBGT['globe_bulb_50mm' + TT1] = WBGT_f['globe_bulb_50mm']
+            #     WBGT['globe_bulb_150mm' + TT1] = WBGT_f['globe_bulb_150mm']
+            #     WBGT['WBGTo'+ TT1] = WBGT_f['WBGTo']
+            #     #print(WBGT)
+            #     WBGT.to_csv(CSV_data + "/" + f, mode='w+', index=False)
+            # ************************for 勞動部情境模式 End************************
 
             # ************************for General Start************************
-            # WBGT_f = fWBGTo(datafile)
-            # WBGT['wet_bulb']=WBGT_f['wet_bulb']
-            # WBGT['globe_bulb_50mm'] = WBGT_f['globe_bulb_50mm']
-            # WBGT['globe_bulb_150mm'] = WBGT_f['globe_bulb_150mm']
-            # WBGT['WBGTo']=WBGT_f['WBGTo']
-            # #print(WBGT)
-            # WBGT.to_csv(WBGT_data + "/" + f , mode='w+', index=False)
+            WBGT_f = fWBGTo(datafile)
+            WBGT['wet_bulb']=WBGT_f['wet_bulb']
+            WBGT['globe_bulb_50mm'] = WBGT_f['globe_bulb_50mm']
+            WBGT['globe_bulb_150mm'] = WBGT_f['globe_bulb_150mm']
+            WBGT['WBGTo']=WBGT_f['WBGTo']
+            WBGT.to_csv(WBGT_data + "/" + f , mode='w+', index=False)
+            #shutil.move(os.path.join(CSV_data, f), os.path.join(CSV_data_BK, f))
             # ************************for General End************************
-
         except Exception as e:
+            shutil.move(os.path.join(CSV_data, f), os.path.join(CSV_data_ER, f))
             print("data error: ",e)
-
 
 if __name__ == '__main__':
     Cal_WBGT(csv_files,CSV_data)
