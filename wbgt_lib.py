@@ -79,6 +79,15 @@ def time_convert(row, time_interval,DateTime_format):
     day_in_year = data_time.timetuple().tm_yday
     return year, mon, day, hr, minute, sec, day_in_year
 
+# check if the year is a leap year or not.
+def fLeap(year):
+    if ((year % 4 == 0 and year % 100 != 0) or (year % 400 == 0 and year % 4000 != 0)):
+        # print("leap year")
+        return True
+    else:
+        # print("not leap year")
+        return False
+
 #https://www.esrl.noaa.gov/gmd/grad/solcalc/solareqns.PDF
 def solar_zenith(row):
     lon = row['lon']
@@ -88,7 +97,13 @@ def solar_zenith(row):
     minute = row['minute']
     sec = row['second']
     day_in_year = row['day_in_year']
-    gamma = (2 * math.pi / 365) * ((day_in_year - 1) + (hr - 12) / 24)
+
+    if fLeap(year):
+        days_the_year = 366
+    else:
+        days_the_year = 365
+
+    gamma = (2 * math.pi / days_the_year) * ((day_in_year - 1) + (hr - 12) / 24)
     eqtime = 229.18 * (0.000075 + 0.001868 * math.cos(gamma) - 0.032077 * math.sin(gamma) - 0.014615 * math.cos(
         2 * gamma) - 0.040849 * math.sin(2 * gamma))
     decl = 0.006918 - (0.399912 * math.cos(gamma)) + 0.070257 * math.sin(gamma) - 0.006758 * math.cos(
